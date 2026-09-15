@@ -6,7 +6,7 @@ A modern, production-grade Full-Stack Authentication and Role-Based Access Contr
 
 ## 🌐 Live Deployment Links
 
-- **🚀 Live Frontend App (Vercel):** [https://full-stack-secure-authentication-system.vercel.app](https://full-stack-secure-authentication-system.vercel.app)
+- **🚀 Live Frontend App (Vercel):** [https://full-stack-secure-authentication-sy.vercel.app/])
 - **⚡ Live Backend REST API (Render):** [https://full-stack-secure-authentication-system.onrender.com](https://full-stack-secure-authentication-system.onrender.com)
 
 ---
