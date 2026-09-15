@@ -5,7 +5,7 @@ export default function App() {
   const [authMode, setAuthMode] = useState("login"); // "login", "register", "forgot", "reset"
   const [activeTab, setActiveTab] = useState("profile"); // "profile", "admin"
 
-  // Show/Hide Password Toggle States
+  // Password Visibility Toggles
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -32,7 +32,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  // Floating Toast State
+  // Notification Toast State
   const [toast, setToast] = useState(null);
 
   // Admin Dashboard States
@@ -44,7 +44,6 @@ export default function App() {
     setToast({ type, text, id: Date.now() });
   };
 
-  // Auto dismiss toast after 4 seconds
   useEffect(() => {
     if (toast) {
       const timer = setTimeout(() => setToast(null), 4000);
@@ -52,7 +51,7 @@ export default function App() {
     }
   }, [toast]);
 
-  // Check auth session on mount
+  // Session check on mount
   useEffect(() => {
     const fetchSession = async () => {
       const accessToken = localStorage.getItem("accessToken");
@@ -77,7 +76,7 @@ export default function App() {
     fetchSession();
   }, []);
 
-  // Fetch admin dashboard data when admin tab is selected
+  // Fetch admin stats when admin tab is selected
   useEffect(() => {
     if (user && user.role === "admin" && activeTab === "admin") {
       fetchAdminData();
@@ -101,9 +100,12 @@ export default function App() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Password strength calculator
+  const isPasswordStrong = (pwd) => {
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(pwd);
+  };
+
   const getPasswordStrength = (pwd) => {
-    if (!pwd) return { score: 0, label: "", color: "bg-slate-700", percent: 0 };
+    if (!pwd) return { label: "", color: "bg-slate-700", width: "0%" };
     let score = 0;
     if (pwd.length >= 8) score += 1;
     if (/[a-z]/.test(pwd)) score += 1;
@@ -111,16 +113,12 @@ export default function App() {
     if (/\d/.test(pwd)) score += 1;
     if (/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) score += 1;
 
-    if (score <= 2) return { score, label: "Weak", color: "bg-rose-500", percent: 33 };
-    if (score <= 4) return { score, label: "Medium", color: "bg-amber-500", percent: 66 };
-    return { score, label: "Strong", color: "bg-emerald-500", percent: 100 };
+    if (score <= 2) return { label: "Weak", color: "bg-rose-500", width: "33%" };
+    if (score <= 4) return { label: "Medium", color: "bg-amber-500", width: "66%" };
+    return { label: "Strong", color: "bg-emerald-500", width: "100%" };
   };
 
-  const isPasswordStrong = (pwd) => {
-    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(pwd);
-  };
-
-  // Auth Submit Handlers
+  // Auth Submissions
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
 
@@ -132,7 +130,7 @@ export default function App() {
       if (!isPasswordStrong(formData.password)) {
         showToast(
           "error",
-          "Password must be at least 8 characters long and contain uppercase, lowercase, a number, and a special character."
+          "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character."
         );
         return;
       }
@@ -152,7 +150,7 @@ export default function App() {
 
         setUser(res.data.user);
         setProfileData({ name: res.data.user.name, email: res.data.user.email });
-        showToast("success", "Successfully logged in!");
+        showToast("success", "Successfully logged in.");
       } else if (authMode === "register") {
         const res = await api.post("/api/auth/register", {
           name: formData.name,
@@ -165,14 +163,14 @@ export default function App() {
 
         setUser(res.data.user);
         setProfileData({ name: res.data.user.name, email: res.data.user.email });
-        showToast("success", res.data.message || "Account created successfully!");
+        showToast("success", res.data.message || "Account created successfully.");
       }
     } catch (error) {
       console.error("Auth Error:", error);
       const errorMsg =
         error.response?.data?.message ||
         (error.message === "Network Error"
-          ? "Cannot connect to backend server. Make sure node server.js is running."
+          ? "Cannot connect to server. Ensure backend process is running."
           : error.message) ||
         "Authentication failed";
       showToast("error", errorMsg);
@@ -181,7 +179,6 @@ export default function App() {
     }
   };
 
-  // Forgot Password Request Handler
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -200,13 +197,12 @@ export default function App() {
     }
   };
 
-  // Reset Password Submit Handler
   const handleResetPassword = async (e) => {
     e.preventDefault();
     if (!isPasswordStrong(resetData.password)) {
       showToast(
         "error",
-        "Password must be at least 8 characters long and contain uppercase, lowercase, a number, and a special character."
+        "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character."
       );
       return;
     }
@@ -225,7 +221,6 @@ export default function App() {
     }
   };
 
-  // Profile Update Handler
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -233,15 +228,14 @@ export default function App() {
     try {
       const res = await api.put("/api/users/me", profileData);
       setUser(res.data.user);
-      showToast("success", "Profile updated successfully!");
+      showToast("success", "Profile updated.");
     } catch (error) {
-      showToast("error", error.response?.data?.message || "Profile update failed");
+      showToast("error", error.response?.data?.message || "Update failed");
     } finally {
       setLoading(false);
     }
   };
 
-  // Change Password Handler
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
@@ -251,7 +245,7 @@ export default function App() {
     if (!isPasswordStrong(passwordData.newPassword)) {
       showToast(
         "error",
-        "New password must be at least 8 characters long and contain uppercase, lowercase, a number, and a special character."
+        "New password must be at least 8 characters and include uppercase, lowercase, a number, and a special character."
       );
       return;
     }
@@ -272,53 +266,51 @@ export default function App() {
     }
   };
 
-  // Admin Actions
   const handleToggleUserStatus = async (userId, currentStatus) => {
     const newStatus = currentStatus === "active" ? "deactivated" : "active";
     try {
       await api.patch(`/api/admin/users/${userId}/status`, { status: newStatus });
-      showToast("success", `User status changed to ${newStatus}`);
+      showToast("success", `User status updated to ${newStatus}`);
       fetchAdminData();
     } catch (error) {
-      showToast("error", error.response?.data?.message || "Status update failed");
+      showToast("error", error.response?.data?.message || "Action failed");
     }
   };
 
   const handleDeleteUser = async (userId) => {
-    if (!window.confirm("Are you sure you want to delete this user account?")) return;
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
       await api.delete(`/api/admin/users/${userId}`);
-      showToast("success", "User deleted successfully");
+      showToast("success", "User deleted.");
       fetchAdminData();
     } catch (error) {
-      showToast("error", error.response?.data?.message || "Failed to delete user");
+      showToast("error", error.response?.data?.message || "Action failed");
     }
   };
 
-  // Logout Handler
   const handleLogout = async (showMessage = true) => {
     try {
       const refreshToken = localStorage.getItem("refreshToken");
       await api.post("/api/auth/logout", { refreshToken });
     } catch (err) {
-      console.error("Logout request error:", err);
+      console.error("Logout error:", err);
     } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       setUser(null);
       setActiveTab("profile");
       if (showMessage) {
-        showToast("success", "Logged out successfully");
+        showToast("success", "Logged out.");
       }
     }
   };
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center font-sans p-4">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-400 font-medium text-sm">Verifying session...</p>
+      <div className="min-h-screen bg-[#0b0f19] text-slate-200 flex items-center justify-center font-sans">
+        <div className="flex flex-col items-center space-y-3">
+          <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-xs text-slate-400 font-medium">Verifying session...</span>
         </div>
       </div>
     );
@@ -328,61 +320,49 @@ export default function App() {
   const changeStrength = getPasswordStrength(passwordData.newPassword);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100 font-sans p-4 md:p-8 relative">
+    <div className="min-h-screen bg-[#0b0f19] text-slate-200 font-sans p-4 md:p-8">
       
-      {/* FLOATING TOAST NOTIFICATION */}
+      {/* TOAST NOTIFICATION */}
       {toast && (
-        <div className="fixed top-5 right-5 z-50 max-w-md w-full animate-in fade-in slide-in-from-top-5 duration-300">
+        <div className="fixed top-5 right-5 z-50 max-w-sm w-full">
           <div
-            className={`p-4 rounded-2xl shadow-2xl border flex items-center justify-between backdrop-blur-xl ${
+            className={`p-3.5 rounded-lg border text-xs font-medium flex items-center justify-between shadow-lg ${
               toast.type === "success"
-                ? "bg-emerald-950/90 border-emerald-500/40 text-emerald-200"
-                : "bg-rose-950/90 border-rose-500/40 text-rose-200"
+                ? "bg-[#064e3b] border-emerald-600/50 text-emerald-200"
+                : "bg-[#7f1d1d] border-rose-600/50 text-rose-200"
             }`}
           >
-            <div className="flex items-center space-x-3">
-              {toast.type === "success" ? (
-                <svg className="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              )}
-              <span className="text-sm font-medium">{toast.text}</span>
-            </div>
+            <span>{toast.text}</span>
             <button
               onClick={() => setToast(null)}
-              className="ml-4 text-slate-400 hover:text-white transition"
+              className="ml-3 text-slate-400 hover:text-white"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              ✕
             </button>
           </div>
         </div>
       )}
 
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6">
 
         {/* LOGGED IN USER INTERFACE */}
         {user ? (
           <div className="space-y-6">
-            {/* HEADER BAR */}
-            <header className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl p-4 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-xl">
+            
+            {/* HEADER / NAVIGATION BAR */}
+            <header className="bg-[#151c2c] border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-indigo-600/30 border border-indigo-500/40 rounded-xl flex items-center justify-center text-indigo-400 font-bold text-xl uppercase">
-                  {user.name ? user.name.charAt(0) : "U"}
+                <div className="w-10 h-10 bg-slate-800 border border-slate-700 rounded-lg flex items-center justify-center font-semibold text-slate-200 text-sm">
+                  {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <h1 className="text-xl font-bold text-white">{user.name}</h1>
+                    <h1 className="text-base font-semibold text-slate-100">{user.name}</h1>
                     <span
-                      className={`text-xs font-bold px-2.5 py-0.5 rounded-full uppercase border ${
+                      className={`text-[10px] font-medium px-2 py-0.5 rounded border uppercase tracking-wider ${
                         user.role === "admin"
-                          ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
-                          : "bg-indigo-500/20 text-indigo-300 border-indigo-500/30"
+                          ? "bg-indigo-950 text-indigo-300 border-indigo-700/60"
+                          : "bg-slate-800 text-slate-300 border-slate-700"
                       }`}
                     >
                       {user.role}
@@ -392,25 +372,24 @@ export default function App() {
                 </div>
               </div>
 
-              {/* NAVIGATION TABS & LOGOUT */}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setActiveTab("profile")}
-                  className={`px-4 py-2 text-sm font-semibold rounded-xl border transition ${
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
                     activeTab === "profile"
                       ? "bg-indigo-600 text-white border-indigo-500"
                       : "bg-slate-800 text-slate-300 border-slate-700 hover:text-white"
                   }`}
                 >
-                  My Profile
+                  Profile Settings
                 </button>
 
                 {user.role === "admin" && (
                   <button
                     onClick={() => setActiveTab("admin")}
-                    className={`px-4 py-2 text-sm font-semibold rounded-xl border transition ${
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
                       activeTab === "admin"
-                        ? "bg-purple-600 text-white border-purple-500"
+                        ? "bg-indigo-600 text-white border-indigo-500"
                         : "bg-slate-800 text-slate-300 border-slate-700 hover:text-white"
                     }`}
                   >
@@ -420,7 +399,7 @@ export default function App() {
 
                 <button
                   onClick={() => handleLogout(true)}
-                  className="px-4 py-2 text-sm font-semibold rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 transition"
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
                 >
                   Logout
                 </button>
@@ -430,125 +409,111 @@ export default function App() {
             {/* TAB 1: PROFILE & SETTINGS */}
             {activeTab === "profile" && (
               <div className="grid md:grid-cols-2 gap-6">
+                
                 {/* EDIT PROFILE CARD */}
-                <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                  <h2 className="text-lg font-bold text-white border-b border-slate-800 pb-3">
-                    Edit Profile
-                  </h2>
-                  <form onSubmit={handleUpdateProfile} className="space-y-4">
+                <div className="bg-[#151c2c] border border-slate-800 rounded-xl p-5 space-y-4">
+                  <div className="border-b border-slate-800 pb-3">
+                    <h2 className="text-sm font-semibold text-slate-100">Account Details</h2>
+                    <p className="text-xs text-slate-400 mt-0.5">Update your basic profile information.</p>
+                  </div>
+
+                  <form onSubmit={handleUpdateProfile} className="space-y-3.5">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">
-                        Full Name
-                      </label>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">Full Name</label>
                       <input
                         type="text"
                         value={profileData.name}
-                        onChange={(e) =>
-                          setProfileData({ ...profileData, name: e.target.value })
-                        }
+                        onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
                         required
-                        className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
+
                     <div>
-                      <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">
-                        Email Address
-                      </label>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
                       <input
                         type="email"
                         value={profileData.email}
-                        onChange={(e) =>
-                          setProfileData({ ...profileData, email: e.target.value })
-                        }
+                        onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
                         required
-                        className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-semibold text-white rounded-xl shadow-lg shadow-indigo-600/20 transition"
-                    >
-                      Update Profile
-                    </button>
+
+                    <div className="pt-1">
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-500 font-medium text-xs text-white rounded-lg transition-colors border border-indigo-500/30"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
                   </form>
                 </div>
 
                 {/* CHANGE PASSWORD CARD */}
-                <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                  <h2 className="text-lg font-bold text-white border-b border-slate-800 pb-3">
-                    Change Password
-                  </h2>
-                  <form onSubmit={handleChangePassword} className="space-y-4">
+                <div className="bg-[#151c2c] border border-slate-800 rounded-xl p-5 space-y-4">
+                  <div className="border-b border-slate-800 pb-3">
+                    <h2 className="text-sm font-semibold text-slate-100">Security & Password</h2>
+                    <p className="text-xs text-slate-400 mt-0.5">Ensure a strong, unique password.</p>
+                  </div>
+
+                  <form onSubmit={handleChangePassword} className="space-y-3.5">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">
-                        Current Password
-                      </label>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">Current Password</label>
                       <div className="relative">
                         <input
                           type={showCurrentPassword ? "text" : "password"}
-                          placeholder="••••••••"
                           value={passwordData.currentPassword}
                           onChange={(e) =>
-                            setPasswordData({
-                              ...passwordData,
-                              currentPassword: e.target.value,
-                            })
+                            setPasswordData({ ...passwordData, currentPassword: e.target.value })
                           }
                           required
-                          className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
+                          className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500 pr-9"
                         />
                         <button
                           type="button"
                           onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                          className="absolute right-3 top-3 text-slate-400 hover:text-white"
+                          className="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-200"
                         >
-                          {showCurrentPassword ? "🙈" : "👁️"}
+                          {showCurrentPassword ? "Hide" : "Show"}
                         </button>
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">
-                        New Password
-                      </label>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">New Password</label>
                       <div className="relative">
                         <input
                           type={showNewPassword ? "text" : "password"}
-                          placeholder="••••••••"
                           value={passwordData.newPassword}
                           onChange={(e) =>
-                            setPasswordData({
-                              ...passwordData,
-                              newPassword: e.target.value,
-                            })
+                            setPasswordData({ ...passwordData, newPassword: e.target.value })
                           }
                           required
                           minLength={8}
-                          className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
+                          className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500 pr-9"
                         />
                         <button
                           type="button"
                           onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute right-3 top-3 text-slate-400 hover:text-white"
+                          className="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-200"
                         >
-                          {showNewPassword ? "🙈" : "👁️"}
+                          {showNewPassword ? "Hide" : "Show"}
                         </button>
                       </div>
 
-                      {/* LIVE STRENGTH METER */}
                       {passwordData.newPassword && (
-                        <div className="mt-2 space-y-1">
-                          <div className="flex justify-between text-xs font-medium">
-                            <span className="text-slate-400">Strength:</span>
-                            <span className={`font-semibold ${changeStrength.color.replace('bg-', 'text-')}`}>
-                              {changeStrength.label}
-                            </span>
+                        <div className="mt-1.5 space-y-1">
+                          <div className="flex justify-between text-[11px]">
+                            <span className="text-slate-400">Password strength:</span>
+                            <span className="font-medium text-slate-300">{changeStrength.label}</span>
                           </div>
-                          <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800">
+                          <div className="w-full bg-[#0b0f19] h-1 rounded-full overflow-hidden border border-slate-800">
                             <div
                               className={`h-full transition-all duration-300 ${changeStrength.color}`}
-                              style={{ width: `${changeStrength.percent}%` }}
+                              style={{ width: changeStrength.width }}
                             ></div>
                           </div>
                         </div>
@@ -556,32 +521,28 @@ export default function App() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">
-                        Confirm New Password
-                      </label>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">Confirm New Password</label>
                       <input
                         type="password"
-                        placeholder="••••••••"
                         value={passwordData.confirmPassword}
                         onChange={(e) =>
-                          setPasswordData({
-                            ...passwordData,
-                            confirmPassword: e.target.value,
-                          })
+                          setPasswordData({ ...passwordData, confirmPassword: e.target.value })
                         }
                         required
                         minLength={8}
-                        className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
 
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full py-3 bg-slate-800 hover:bg-slate-700 font-semibold text-white border border-slate-700 rounded-xl transition"
-                    >
-                      Update Password
-                    </button>
+                    <div className="pt-1">
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-2 px-4 bg-slate-800 hover:bg-slate-700 font-medium text-xs text-slate-200 rounded-lg border border-slate-700 transition-colors"
+                      >
+                        Update Password
+                      </button>
+                    </div>
                   </form>
                 </div>
               </div>
@@ -590,53 +551,57 @@ export default function App() {
             {/* TAB 2: ADMIN DASHBOARD */}
             {activeTab === "admin" && user.role === "admin" && (
               <div className="space-y-6">
-                {/* SYSTEM STATS METRICS */}
+                
+                {/* SYSTEM STATS */}
                 {adminStats && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
-                      <p className="text-xs font-semibold text-slate-400 uppercase">Total Users</p>
-                      <p className="text-2xl font-bold text-white mt-1">{adminStats.totalUsers}</p>
+                    <div className="bg-[#151c2c] border border-slate-800 p-4 rounded-xl">
+                      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Users</p>
+                      <p className="text-xl font-bold text-slate-100 mt-1">{adminStats.totalUsers}</p>
                     </div>
-                    <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
-                      <p className="text-xs font-semibold text-slate-400 uppercase">Active Users</p>
-                      <p className="text-2xl font-bold text-emerald-400 mt-1">{adminStats.activeUsers}</p>
+                    <div className="bg-[#151c2c] border border-slate-800 p-4 rounded-xl">
+                      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Active Users</p>
+                      <p className="text-xl font-bold text-emerald-400 mt-1">{adminStats.activeUsers}</p>
                     </div>
-                    <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
-                      <p className="text-xs font-semibold text-slate-400 uppercase">Deactivated Users</p>
-                      <p className="text-2xl font-bold text-rose-400 mt-1">{adminStats.deactivatedUsers}</p>
+                    <div className="bg-[#151c2c] border border-slate-800 p-4 rounded-xl">
+                      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Deactivated</p>
+                      <p className="text-xl font-bold text-rose-400 mt-1">{adminStats.deactivatedUsers}</p>
                     </div>
-                    <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
-                      <p className="text-xs font-semibold text-slate-400 uppercase">Admin Count</p>
-                      <p className="text-2xl font-bold text-purple-400 mt-1">{adminStats.adminCount}</p>
+                    <div className="bg-[#151c2c] border border-slate-800 p-4 rounded-xl">
+                      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Admins</p>
+                      <p className="text-xl font-bold text-indigo-400 mt-1">{adminStats.adminCount}</p>
                     </div>
                   </div>
                 )}
 
                 {/* USER MANAGEMENT TABLE */}
-                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <h2 className="text-lg font-bold text-white">User Management</h2>
+                <div className="bg-[#151c2c] border border-slate-800 rounded-xl p-5 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-800 pb-3">
+                    <div>
+                      <h2 className="text-sm font-semibold text-slate-100">User Management</h2>
+                      <p className="text-xs text-slate-400">View and manage user access permissions.</p>
+                    </div>
                     <input
                       type="text"
                       placeholder="Search users..."
                       value={adminSearch}
                       onChange={(e) => setAdminSearch(e.target.value)}
-                      className="px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 max-w-xs"
+                      className="px-3 py-1.5 bg-[#0b0f19] border border-slate-700 rounded-lg text-xs text-slate-100 focus:outline-none focus:border-indigo-500 max-w-xs"
                     />
                   </div>
 
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[600px]">
+                    <table className="w-full text-left border-collapse min-w-[550px]">
                       <thead>
-                        <tr className="border-b border-slate-800 text-xs font-semibold text-slate-400 uppercase">
-                          <th className="pb-3 px-2">User</th>
-                          <th className="pb-3 px-2">Role</th>
-                          <th className="pb-3 px-2">Status</th>
-                          <th className="pb-3 px-2">Joined</th>
-                          <th className="pb-3 px-2 text-right">Actions</th>
+                        <tr className="border-b border-slate-800 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+                          <th className="pb-2 px-2">User Details</th>
+                          <th className="pb-2 px-2">Role</th>
+                          <th className="pb-2 px-2">Status</th>
+                          <th className="pb-2 px-2">Joined</th>
+                          <th className="pb-2 px-2 text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800/50 text-sm">
+                      <tbody className="divide-y divide-slate-800/60 text-xs">
                         {usersList
                           .filter(
                             (u) =>
@@ -644,52 +609,48 @@ export default function App() {
                               u.email.toLowerCase().includes(adminSearch.toLowerCase())
                           )
                           .map((u) => (
-                            <tr key={u._id} className="hover:bg-slate-800/30 transition">
-                              <td className="py-3 px-2">
-                                <p className="font-semibold text-white">{u.name}</p>
-                                <p className="text-xs text-slate-400 font-mono">{u.email}</p>
+                            <tr key={u._id} className="hover:bg-slate-800/30">
+                              <td className="py-2.5 px-2">
+                                <p className="font-medium text-slate-200">{u.name}</p>
+                                <p className="text-[11px] text-slate-400">{u.email}</p>
                               </td>
-                              <td className="py-3 px-2">
+                              <td className="py-2.5 px-2">
                                 <span
-                                  className={`text-xs px-2 py-0.5 rounded font-semibold uppercase ${
+                                  className={`text-[10px] px-2 py-0.5 rounded border uppercase font-medium ${
                                     u.role === "admin"
-                                      ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-                                      : "bg-slate-800 text-slate-300"
+                                      ? "bg-indigo-950 text-indigo-300 border-indigo-800/60"
+                                      : "bg-slate-800 text-slate-300 border-slate-700"
                                   }`}
                                 >
                                   {u.role}
                                 </span>
                               </td>
-                              <td className="py-3 px-2">
+                              <td className="py-2.5 px-2">
                                 <span
-                                  className={`text-xs px-2 py-0.5 rounded font-semibold uppercase ${
+                                  className={`text-[10px] px-2 py-0.5 rounded border uppercase font-medium ${
                                     u.status === "active"
-                                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                                      : "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                                      ? "bg-emerald-950/60 text-emerald-300 border-emerald-800/60"
+                                      : "bg-rose-950/60 text-rose-300 border-rose-800/60"
                                   }`}
                                 >
                                   {u.status}
                                 </span>
                               </td>
-                              <td className="py-3 px-2 text-xs text-slate-400">
+                              <td className="py-2.5 px-2 text-slate-400 text-[11px]">
                                 {new Date(u.createdAt).toLocaleDateString()}
                               </td>
-                              <td className="py-3 px-2 text-right space-x-2">
+                              <td className="py-2.5 px-2 text-right space-x-2">
                                 {u._id !== user._id && (
                                   <>
                                     <button
                                       onClick={() => handleToggleUserStatus(u._id, u.status)}
-                                      className={`px-3 py-1 text-xs font-semibold rounded-lg border transition ${
-                                        u.status === "active"
-                                          ? "bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20"
-                                          : "bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20"
-                                      }`}
+                                      className="px-2.5 py-1 text-[11px] font-medium rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
                                     >
-                                      {u.status === "active" ? "Deactivate" : "Reactivate"}
+                                      {u.status === "active" ? "Deactivate" : "Activate"}
                                     </button>
                                     <button
                                       onClick={() => handleDeleteUser(u._id)}
-                                      className="px-3 py-1 text-xs font-semibold rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 transition"
+                                      className="px-2.5 py-1 text-[11px] font-medium rounded bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/50 transition-colors"
                                     >
                                       Delete
                                     </button>
@@ -707,23 +668,24 @@ export default function App() {
           </div>
         ) : (
           /* AUTHENTICATION CONTAINER (LOGIN / REGISTER / FORGOT / RESET) */
-          <div className="max-w-md mx-auto bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
-            {/* AUTH HEADER */}
-            <div className="p-6 text-center border-b border-slate-800">
-              <h1 className="text-2xl font-bold text-white">Auth & RBAC System</h1>
-              <p className="text-xs text-slate-400 mt-1">Enterprise JWT Authentication</p>
+          <div className="max-w-sm mx-auto bg-[#151c2c] border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+            
+            {/* HEADER */}
+            <div className="p-5 text-center border-b border-slate-800">
+              <h1 className="text-lg font-semibold text-slate-100">Auth System</h1>
+              <p className="text-xs text-slate-400 mt-0.5">Secure JWT Authentication & Authorization</p>
             </div>
 
-            {/* MODE SELECTOR */}
+            {/* TAB SELECTOR */}
             {authMode !== "forgot" && authMode !== "reset" && (
-              <div className="grid grid-cols-2 bg-slate-950/60 p-1 border-b border-slate-800">
+              <div className="grid grid-cols-2 bg-[#0b0f19] p-1 border-b border-slate-800 text-xs font-medium">
                 <button
                   type="button"
                   onClick={() => setAuthMode("login")}
-                  className={`py-3 text-sm font-semibold rounded-xl transition ${
+                  className={`py-2 text-center rounded transition-colors ${
                     authMode === "login"
-                      ? "bg-indigo-600 text-white shadow-lg"
-                      : "text-slate-400 hover:text-white"
+                      ? "bg-[#151c2c] text-white font-semibold"
+                      : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
                   Sign In
@@ -731,10 +693,10 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setAuthMode("register")}
-                  className={`py-3 text-sm font-semibold rounded-xl transition ${
+                  className={`py-2 text-center rounded transition-colors ${
                     authMode === "register"
-                      ? "bg-indigo-600 text-white shadow-lg"
-                      : "text-slate-400 hover:text-white"
+                      ? "bg-[#151c2c] text-white font-semibold"
+                      : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
                   Register
@@ -742,13 +704,14 @@ export default function App() {
               </div>
             )}
 
-            <div className="p-6">
+            <div className="p-5">
+              
               {/* LOGIN / REGISTER FORM */}
               {(authMode === "login" || authMode === "register") && (
-                <form onSubmit={handleAuthSubmit} className="space-y-4">
+                <form onSubmit={handleAuthSubmit} className="space-y-3.5">
                   {authMode === "register" && (
                     <div>
-                      <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">
+                      <label className="block text-xs font-medium text-slate-300 mb-1">
                         Full Name
                       </label>
                       <input
@@ -758,13 +721,13 @@ export default function App() {
                         onChange={handleFormChange}
                         placeholder="John Doe"
                         required
-                        className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
                   )}
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">
+                    <label className="block text-xs font-medium text-slate-300 mb-1">
                       Email Address
                     </label>
                     <input
@@ -774,22 +737,22 @@ export default function App() {
                       onChange={handleFormChange}
                       placeholder="you@example.com"
                       required
-                      className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
                     />
                   </div>
 
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="block text-xs font-semibold text-slate-400 uppercase">
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block text-xs font-medium text-slate-300">
                         Password
                       </label>
                       {authMode === "login" && (
                         <button
                           type="button"
                           onClick={() => setAuthMode("forgot")}
-                          className="text-xs text-indigo-400 hover:underline"
+                          className="text-[11px] text-indigo-400 hover:underline"
                         >
-                          Forgot Password?
+                          Forgot password?
                         </button>
                       )}
                     </div>
@@ -802,30 +765,27 @@ export default function App() {
                         placeholder="••••••••"
                         required
                         minLength={authMode === "register" ? 8 : 6}
-                        className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
+                        className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 pr-9"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-slate-400 hover:text-white"
+                        className="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-200"
                       >
-                        {showPassword ? "🙈" : "👁️"}
+                        {showPassword ? "Hide" : "Show"}
                       </button>
                     </div>
 
-                    {/* LIVE PASSWORD STRENGTH METER (REGISTER MODE) */}
                     {authMode === "register" && formData.password && (
-                      <div className="mt-2 space-y-1">
-                        <div className="flex justify-between text-xs font-medium">
+                      <div className="mt-1.5 space-y-1">
+                        <div className="flex justify-between text-[11px]">
                           <span className="text-slate-400">Strength:</span>
-                          <span className={`font-semibold ${regStrength.color.replace('bg-', 'text-')}`}>
-                            {regStrength.label}
-                          </span>
+                          <span className="font-medium text-slate-300">{regStrength.label}</span>
                         </div>
-                        <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800">
+                        <div className="w-full bg-[#0b0f19] h-1 rounded-full overflow-hidden border border-slate-800">
                           <div
                             className={`h-full transition-all duration-300 ${regStrength.color}`}
-                            style={{ width: `${regStrength.percent}%` }}
+                            style={{ width: regStrength.width }}
                           ></div>
                         </div>
                       </div>
@@ -835,7 +795,7 @@ export default function App() {
                   {authMode === "register" && (
                     <>
                       <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">
+                        <label className="block text-xs font-medium text-slate-300 mb-1">
                           Confirm Password
                         </label>
                         <div className="relative">
@@ -847,26 +807,21 @@ export default function App() {
                             placeholder="••••••••"
                             required
                             minLength={8}
-                            className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
+                            className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 pr-9"
                           />
                           <button
                             type="button"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            className="absolute right-3 top-3 text-slate-400 hover:text-white"
+                            className="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-200"
                           >
-                            {showConfirmPassword ? "🙈" : "👁️"}
+                            {showConfirmPassword ? "Hide" : "Show"}
                           </button>
                         </div>
                       </div>
 
-                      {/* PASSWORD REQUIREMENTS GUIDE */}
-                      <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 text-[11px] text-slate-400 space-y-1">
-                        <p className="font-semibold text-slate-300">Password Requirements:</p>
-                        <ul className="list-disc list-inside space-y-0.5">
-                          <li>At least 8 characters long</li>
-                          <li>Uppercase & lowercase letter</li>
-                          <li>Number & special character (!@#$%^&*)</li>
-                        </ul>
+                      <div className="p-2.5 bg-[#0b0f19] rounded-lg border border-slate-800 text-[11px] text-slate-400 space-y-0.5">
+                        <p className="font-medium text-slate-300">Password rules:</p>
+                        <p>• Min 8 chars with uppercase, lowercase, number & symbol</p>
                       </div>
                     </>
                   )}
@@ -874,12 +829,12 @@ export default function App() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 font-semibold text-white rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center"
+                    className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 font-medium text-xs text-white rounded-lg transition-colors border border-indigo-500/30 flex items-center justify-center mt-2"
                   >
                     {loading ? (
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     ) : (
-                      <span>{authMode === "login" ? "Sign In" : "Create Account"}</span>
+                      <span>{authMode === "login" ? "Sign In" : "Register Account"}</span>
                     )}
                   </button>
                 </form>
@@ -887,13 +842,13 @@ export default function App() {
 
               {/* FORGOT PASSWORD FORM */}
               {authMode === "forgot" && (
-                <form onSubmit={handleForgotPassword} className="space-y-4">
-                  <h2 className="text-lg font-bold text-white text-center">Forgot Password</h2>
+                <form onSubmit={handleForgotPassword} className="space-y-3.5">
+                  <h2 className="text-sm font-semibold text-slate-100 text-center">Reset Password</h2>
                   <p className="text-xs text-slate-400 text-center">
-                    Enter your email address to receive password reset instructions.
+                    Enter your email address to receive reset instructions.
                   </p>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">
+                    <label className="block text-xs font-medium text-slate-300 mb-1">
                       Email Address
                     </label>
                     <input
@@ -902,20 +857,20 @@ export default function App() {
                       onChange={(e) => setForgotEmail(e.target.value)}
                       placeholder="you@example.com"
                       required
-                      className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 font-semibold text-white rounded-xl shadow-lg shadow-indigo-600/30 transition"
+                    className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 font-medium text-xs text-white rounded-lg transition-colors border border-indigo-500/30"
                   >
                     Send Reset Link
                   </button>
                   <button
                     type="button"
                     onClick={() => setAuthMode("login")}
-                    className="w-full py-2 text-xs text-slate-400 hover:text-white"
+                    className="w-full py-1 text-xs text-slate-400 hover:text-slate-200 text-center block"
                   >
                     Back to Sign In
                   </button>
@@ -924,23 +879,23 @@ export default function App() {
 
               {/* RESET PASSWORD FORM */}
               {authMode === "reset" && (
-                <form onSubmit={handleResetPassword} className="space-y-4">
-                  <h2 className="text-lg font-bold text-white text-center">Reset Password</h2>
+                <form onSubmit={handleResetPassword} className="space-y-3.5">
+                  <h2 className="text-sm font-semibold text-slate-100 text-center">Set New Password</h2>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">
+                    <label className="block text-xs font-medium text-slate-300 mb-1">
                       Reset Token
                     </label>
                     <input
                       type="text"
                       value={resetData.token}
                       onChange={(e) => setResetData({ ...resetData, token: e.target.value })}
-                      placeholder="Enter reset token"
+                      placeholder="Enter token"
                       required
-                      className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">
+                    <label className="block text-xs font-medium text-slate-300 mb-1">
                       New Password
                     </label>
                     <input
@@ -950,15 +905,15 @@ export default function App() {
                       placeholder="••••••••"
                       required
                       minLength={8}
-                      className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 font-semibold text-white rounded-xl shadow-lg shadow-emerald-600/30 transition"
+                    className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 font-medium text-xs text-white rounded-lg transition-colors border border-indigo-500/30"
                   >
-                    Set New Password
+                    Update Password
                   </button>
                 </form>
               )}
