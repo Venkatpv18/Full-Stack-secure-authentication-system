@@ -1,235 +1,167 @@
-# Full Stack Secure Authentication System
+# Full-Stack Secure Authentication & RBAC System
 
-A modern Full Stack Authentication System built using React.js, Node.js, Express.js, and MongoDB Atlas. This project provides secure user registration and 
-login functionality using JWT authentication and password hashing.
+A modern, production-grade Full-Stack Authentication and Role-Based Access Control (RBAC) System built using React.js, Node.js, Express.js, and MongoDB Atlas. Featuring Dual JWT Tokens (Access + Refresh), Password Reset flow, Express Security Hardening, User Profile Management, and an interactive Admin Dashboard.
 
---------------------------------------------------
+---
 
-## Features
+## 🌟 Key Features
 
-- User Registration
-- User Login Authentication
-- Secure Password Hashing using bcryptjs
-- JWT Token Authentication
-- MongoDB Atlas Database Integration
-- Responsive User Interface
-- Frontend & Backend API Communication
-- Logout Functionality
-- Token Storage using localStorage
+### 🔒 Authentication & Security
+- **Dual JWT Token Architecture:** Short-lived Access Tokens (15 min) + Refresh Tokens (7 days) with automated silent token rotation.
+- **Password Security & Complexity:** Password hashing via `bcryptjs` (10 salt rounds) and strong complexity rules (minimum 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character).
+- **Password Reset Flow:** Cryptographically secure reset tokens generated via `crypto.randomBytes(32)` hashed with SHA256 and 10-minute expiration (`/api/auth/forgot-password` & `/api/auth/reset-password`).
+- **Express Hardening:** `helmet` security headers, dynamic CORS origin matching, and `express-rate-limit` brute-force protection (100 requests / 15 min).
 
---------------------------------------------------
+### 🛡️ Role-Based Access Control (RBAC)
+- **USER Role:** Manage own profile, edit name & email, change password, and view account details.
+- **ADMIN Role:** Access the Admin Dashboard, view real-time system metrics (Total Users, Active, Deactivated, Admins), search registered users, toggle user status (`active`/`deactivated`), and delete accounts.
 
-## Technologies Used
+### 🎨 User Interface & UX
+- **Developer Dark Theme:** Clean slate/navy dark design with distinct card surfaces, crisp borders, and zero AI clutter.
+- **Show / Hide Password Eye Toggle:** Interactive SVG eye icons inside password inputs.
+- **Live Password Strength Meter:** Real-time color-coded progress bar (**Weak** / **Medium** / **Strong**).
+- **Floating Toast Notifications:** Slide-in alert system with auto-dismiss and manual close options.
+- **Responsive Layout:** Optimized for Desktop, Tablet, and Mobile screens.
+
+---
+
+## 🛠️ Technology Stack
 
 ### Frontend
-- React.js
-- Tailwind CSS
-- Axios
-- Vite
+- **Framework:** React 19 + Vite 8
+- **Styling:** Tailwind CSS 3
+- **HTTP Client:** Axios (with automatic 401 token refresh interceptor)
 
 ### Backend
-- Node.js
-- Express.js
+- **Runtime:** Node.js & Express.js 5
+- **Database:** MongoDB Atlas + Mongoose 8
+- **Security:** `jsonwebtoken`, `bcryptjs`, `helmet`, `express-rate-limit`, `cookie-parser`, `dotenv`
 
-### Database
-- MongoDB Atlas
-- Mongoose
+---
 
-### Authentication & Security
-- JWT (JSON Web Token)
-- bcryptjs
-- dotenv
-- cors
+## 📁 Project Structure
 
---------------------------------------------------
+```text
+authentication-project/
+├── .gitignore                     # Root Git ignore rules
+├── README.md                      # Project documentation
+├── client/                        # React + Vite Frontend
+│   ├── .env.example               # Client environment template
+│   ├── vercel.json                # Vercel SPA routing rewrite rules
+│   ├── package.json               # Client dependencies & scripts
+│   ├── vite.config.js             # Vite build configuration
+│   └── src/
+│       ├── main.jsx               # React DOM root
+│       ├── App.jsx                # Main container (Auth forms, Profile, Admin Dashboard)
+│       ├── index.css              # Tailwind imports
+│       └── services/
+│           └── api.js             # Axios instance with Bearer token interceptor
+└── server/                        # Express Node.js Backend API
+    ├── .env.example               # Server environment template
+    ├── .gitignore                 # Server Git ignore rules
+    ├── package.json               # Server dependencies & scripts
+    ├── server.js                  # Express app entry point & CORS/Helmet middleware
+    ├── models/
+    │   └── User.js                # Mongoose Schema (Name, Email, Password, Role, Status, Tokens)
+    ├── middleware/
+    │   └── authMiddleware.js      # JWT authentication (`protect`) & RBAC (`authorizeRole`)
+    └── routes/
+        ├── authRoutes.js          # Authentication routes (register, login, refresh, logout, reset)
+        ├── userRoutes.js          # User profile management routes (/api/users/me)
+        └── adminRoutes.js         # Admin metrics & user management routes (/api/admin/*)
+```
 
-## Project Structure
+---
 
-authentication-project
+## ⚙️ Installation & Setup
 
-│
+### 1. Clone Repository
+```bash
+git clone https://github.com/Venkatpv18/Full-Stack-secure-authentication-system.git
+cd Full-Stack-secure-authentication-system
+```
 
-├── client
-
-│   ├── src
-
-│   │   ├── App.jsx
-
-│   │   ├── main.jsx
-
-│   │   └── index.css
-
-│   │
-
-│   ├── public
-
-│   ├── package.json
-
-│   ├── vite.config.js
-
-│   └── ...
-
-│
-
-├── server
-
-│   ├── models
-
-│   │   └── User.js
-
-│   │
-
-│   ├── routes
-
-│   │   └── authRoutes.js
-
-│   │
-
-│   ├── .env
-
-│   ├── server.js
-
-│   ├── package.json
-
-    ├── README.md
-
-    └── .gitignore
-
---------------------------------------------------
-
-## Installation & Setup
-
-### Clone Repository
-
-git clone https://github.com/YOUR_USERNAME/Full-Stack-secure-authentication-system.git
-
---------------------------------------------------
-
-## Frontend Setup
-
-Open terminal inside the client folder:
-
-cd client
-
-npm install
-
-npm run dev
-
-Frontend runs on:
-
-http://localhost:5173
-
---------------------------------------------------
-
-## Backend Setup
-
-Open terminal inside the server folder:
-
+### 2. Backend Setup
+```bash
 cd server
-
 npm install
+```
 
+Create a `.env` file in `server/`:
+```env
+PORT=5000
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/authDB?retryWrites=true&w=majority
+JWT_ACCESS_SECRET=your_super_secret_access_key_here
+JWT_REFRESH_SECRET=your_super_secret_refresh_key_here
+FRONTEND_URL=http://localhost:5173
+```
+
+Start the backend server:
+```bash
+node server.js
+```
+*(Backend runs on `http://localhost:5000`)*
+
+### 3. Frontend Setup
+Open a second terminal window:
+```bash
+cd client
+npm install
+```
+
+Create a `.env` file in `client/`:
+```env
+VITE_API_URL=http://localhost:5000
+```
+
+Start the frontend development server:
+```bash
 npm run dev
+```
+*(Frontend runs on `http://localhost:5173`)*
 
-Backend runs on:
+---
 
-http://localhost:5000
+## 🚀 API Endpoints Documentation
 
---------------------------------------------------
+### Authentication Routes (`/api/auth`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Public | Register new user account |
+| `POST` | `/api/auth/login` | Public | Authenticate user & receive Access/Refresh tokens |
+| `POST` | `/api/auth/refresh` | Public | Issue new Access Token using valid Refresh Token |
+| `POST` | `/api/auth/logout` | Public/Private | Revoke refresh token & clear session |
+| `POST` | `/api/auth/forgot-password` | Public | Request password reset token |
+| `POST` | `/api/auth/reset-password` | Public | Reset password using valid reset token |
 
-## Environment Variables
+### User Routes (`/api/users`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/users/me` | Private | Fetch logged-in user profile |
+| `PUT` | `/api/users/me` | Private | Update profile name & email |
+| `PUT` | `/api/users/me/password` | Private | Change password with current password verification |
 
-Create a `.env` file inside the server folder and add:
+### Admin Routes (`/api/admin`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/admin/stats` | Admin | Get total users, active count, deactivated count, admin count |
+| `GET` | `/api/admin/users` | Admin | Fetch list of all registered users |
+| `PATCH` | `/api/admin/users/:id/status` | Admin | Toggle user account status (`active` / `deactivated`) |
+| `DELETE` | `/api/admin/users/:id` | Admin | Delete a user account |
 
-MONGO_URI=your_mongodb_connection_string
+---
 
-JWT_SECRET=mysecretkey
+## 🌐 Production Deployment
 
---------------------------------------------------
+### Backend (Render)
+- **Root Directory:** `server`
+- **Build Command:** `npm install`
+- **Start Command:** `node server.js`
+- **Environment Variables:** `MONGO_URI`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `FRONTEND_URL`
 
-## API Endpoints
-
-### Register User
-
-POST /api/auth/register
-
-Request Body:
-
-{
-  "name": "Venkat",
-  "email": "venkat@gmail.com",
-  "password": "123456"
-}
-
---------------------------------------------------
-
-### Login User
-
-POST /api/auth/login
-
-Request Body:
-
-{
-  "email": "venkat@gmail.com",
-  "password": "123456"
-}
-
---------------------------------------------------
-
-## Working Process
-
-### Step 1
-User enters registration details in the frontend form.
-
-### Step 2
-Frontend sends data to backend using Axios API requests.
-
-### Step 3
-Backend receives request using Express.js routes.
-
-### Step 4
-Password is encrypted using bcryptjs.
-
-### Step 5
-User data is securely stored in MongoDB Atlas.
-
-### Step 6
-User logs in using registered email and password.
-
-### Step 7
-Backend validates user credentials.
-
-### Step 8
-JWT token is generated after successful login.
-
-### Step 9
-Token is stored in browser localStorage.
-
-### Step 10
-User can logout successfully and token gets removed.
-
---------------------------------------------------
-
-## Future Improvements
-
-- Protected Routes
-- Forgot Password Feature
-- Email Verification
-- User Dashboard
-- Role-Based Authentication
-- Profile Management
-
---------------------------------------------------
-
-## Learning Outcomes
-
-Through this project, I learned:
-
-- Full Stack Development
-- React State Management
-- REST API Integration
-- MongoDB Database Connection
-- JWT Authentication
-- Password Encryption
-- Frontend & Backend Communication
-- Git & GitHub Project Management
+### Frontend (Vercel)
+- **Root Directory:** `client`
+- **Framework Preset:** `Vite`
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+- **Environment Variables:** `VITE_API_URL`
