@@ -105,7 +105,7 @@ export default function App() {
   };
 
   const getPasswordStrength = (pwd) => {
-    if (!pwd) return { label: "", color: "bg-slate-700", width: "0%" };
+    if (!pwd) return { label: "", color: "bg-slate-600", width: "0%" };
     let score = 0;
     if (pwd.length >= 8) score += 1;
     if (/[a-z]/.test(pwd)) score += 1;
@@ -305,9 +305,23 @@ export default function App() {
     }
   };
 
+  // Eye Icon Components
+  const EyeIcon = () => (
+    <svg className="w-4 h-4 text-slate-400 hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    </svg>
+  );
+
+  const EyeOffIcon = () => (
+    <svg className="w-4 h-4 text-slate-400 hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.043 10.043 0 013.122-.063c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21M3 3l18 18" />
+    </svg>
+  );
+
   if (checkingAuth) {
     return (
-      <div className="min-h-screen bg-[#0b0f19] text-slate-200 flex items-center justify-center font-sans">
+      <div className="min-h-screen bg-[#0e1726] text-slate-200 flex items-center justify-center font-sans">
         <div className="flex flex-col items-center space-y-3">
           <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
           <span className="text-xs text-slate-400 font-medium">Verifying session...</span>
@@ -320,22 +334,22 @@ export default function App() {
   const changeStrength = getPasswordStrength(passwordData.newPassword);
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-slate-200 font-sans p-4 md:p-8">
+    <div className="min-h-screen bg-[#0e1726] text-slate-200 font-sans p-4 md:p-8">
       
       {/* TOAST NOTIFICATION */}
       {toast && (
         <div className="fixed top-5 right-5 z-50 max-w-sm w-full">
           <div
-            className={`p-3.5 rounded-lg border text-xs font-medium flex items-center justify-between shadow-lg ${
+            className={`p-3.5 rounded-lg border text-xs font-medium flex items-center justify-between shadow-xl ${
               toast.type === "success"
-                ? "bg-[#064e3b] border-emerald-600/50 text-emerald-200"
-                : "bg-[#7f1d1d] border-rose-600/50 text-rose-200"
+                ? "bg-[#064e3b] border-emerald-500/60 text-emerald-200"
+                : "bg-[#7f1d1d] border-rose-500/60 text-rose-200"
             }`}
           >
             <span>{toast.text}</span>
             <button
               onClick={() => setToast(null)}
-              className="ml-3 text-slate-400 hover:text-white"
+              className="ml-3 text-slate-300 hover:text-white"
             >
               ✕
             </button>
@@ -350,9 +364,9 @@ export default function App() {
           <div className="space-y-6">
             
             {/* HEADER / NAVIGATION BAR */}
-            <header className="bg-[#151c2c] border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <header className="bg-[#1b263b] border border-slate-700/80 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-md">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-slate-800 border border-slate-700 rounded-lg flex items-center justify-center font-semibold text-slate-200 text-sm">
+                <div className="w-10 h-10 bg-[#0e1726] border border-slate-600/80 rounded-lg flex items-center justify-center font-semibold text-slate-100 text-sm">
                   {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                 </div>
                 <div>
@@ -361,14 +375,14 @@ export default function App() {
                     <span
                       className={`text-[10px] font-medium px-2 py-0.5 rounded border uppercase tracking-wider ${
                         user.role === "admin"
-                          ? "bg-indigo-950 text-indigo-300 border-indigo-700/60"
-                          : "bg-slate-800 text-slate-300 border-slate-700"
+                          ? "bg-indigo-950 text-indigo-300 border-indigo-600/80"
+                          : "bg-[#0e1726] text-slate-300 border-slate-600/80"
                       }`}
                     >
                       {user.role}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400">{user.email}</p>
+                  <p className="text-xs text-slate-300">{user.email}</p>
                 </div>
               </div>
 
@@ -378,7 +392,7 @@ export default function App() {
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
                     activeTab === "profile"
                       ? "bg-indigo-600 text-white border-indigo-500"
-                      : "bg-slate-800 text-slate-300 border-slate-700 hover:text-white"
+                      : "bg-[#0e1726] text-slate-300 border-slate-600 hover:text-white"
                   }`}
                 >
                   Profile Settings
@@ -390,7 +404,7 @@ export default function App() {
                     className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
                       activeTab === "admin"
                         ? "bg-indigo-600 text-white border-indigo-500"
-                        : "bg-slate-800 text-slate-300 border-slate-700 hover:text-white"
+                        : "bg-[#0e1726] text-slate-300 border-slate-600 hover:text-white"
                     }`}
                   >
                     Admin Dashboard
@@ -399,7 +413,7 @@ export default function App() {
 
                 <button
                   onClick={() => handleLogout(true)}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-[#0e1726] hover:bg-slate-800 text-slate-300 border border-slate-600 transition-colors"
                 >
                   Logout
                 </button>
@@ -411,10 +425,10 @@ export default function App() {
               <div className="grid md:grid-cols-2 gap-6">
                 
                 {/* EDIT PROFILE CARD */}
-                <div className="bg-[#151c2c] border border-slate-800 rounded-xl p-5 space-y-4">
-                  <div className="border-b border-slate-800 pb-3">
+                <div className="bg-[#1b263b] border border-slate-700/80 rounded-xl p-5 space-y-4 shadow-md">
+                  <div className="border-b border-slate-700/80 pb-3">
                     <h2 className="text-sm font-semibold text-slate-100">Account Details</h2>
-                    <p className="text-xs text-slate-400 mt-0.5">Update your basic profile information.</p>
+                    <p className="text-xs text-slate-300 mt-0.5">Update your basic profile information.</p>
                   </div>
 
                   <form onSubmit={handleUpdateProfile} className="space-y-3.5">
@@ -425,7 +439,7 @@ export default function App() {
                         value={profileData.name}
                         onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
                         required
-                        className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+                        className="w-full px-3 py-2 bg-[#131d31] border border-slate-600/80 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
 
@@ -436,7 +450,7 @@ export default function App() {
                         value={profileData.email}
                         onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
                         required
-                        className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+                        className="w-full px-3 py-2 bg-[#131d31] border border-slate-600/80 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
 
@@ -444,7 +458,7 @@ export default function App() {
                       <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-500 font-medium text-xs text-white rounded-lg transition-colors border border-indigo-500/30"
+                        className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-500 font-medium text-xs text-white rounded-lg transition-colors border border-indigo-500/40 shadow-sm"
                       >
                         Save Changes
                       </button>
@@ -453,10 +467,10 @@ export default function App() {
                 </div>
 
                 {/* CHANGE PASSWORD CARD */}
-                <div className="bg-[#151c2c] border border-slate-800 rounded-xl p-5 space-y-4">
-                  <div className="border-b border-slate-800 pb-3">
+                <div className="bg-[#1b263b] border border-slate-700/80 rounded-xl p-5 space-y-4 shadow-md">
+                  <div className="border-b border-slate-700/80 pb-3">
                     <h2 className="text-sm font-semibold text-slate-100">Security & Password</h2>
-                    <p className="text-xs text-slate-400 mt-0.5">Ensure a strong, unique password.</p>
+                    <p className="text-xs text-slate-300 mt-0.5">Ensure a strong, unique password.</p>
                   </div>
 
                   <form onSubmit={handleChangePassword} className="space-y-3.5">
@@ -470,14 +484,14 @@ export default function App() {
                             setPasswordData({ ...passwordData, currentPassword: e.target.value })
                           }
                           required
-                          className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500 pr-9"
+                          className="w-full px-3 py-2 bg-[#131d31] border border-slate-600/80 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500 pr-9"
                         />
                         <button
                           type="button"
                           onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                          className="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-200"
+                          className="absolute right-2.5 top-2.5"
                         >
-                          {showCurrentPassword ? "Hide" : "Show"}
+                          {showCurrentPassword ? <EyeOffIcon /> : <EyeIcon />}
                         </button>
                       </div>
                     </div>
@@ -493,24 +507,24 @@ export default function App() {
                           }
                           required
                           minLength={8}
-                          className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500 pr-9"
+                          className="w-full px-3 py-2 bg-[#131d31] border border-slate-600/80 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500 pr-9"
                         />
                         <button
                           type="button"
                           onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-200"
+                          className="absolute right-2.5 top-2.5"
                         >
-                          {showNewPassword ? "Hide" : "Show"}
+                          {showNewPassword ? <EyeOffIcon /> : <EyeIcon />}
                         </button>
                       </div>
 
                       {passwordData.newPassword && (
                         <div className="mt-1.5 space-y-1">
                           <div className="flex justify-between text-[11px]">
-                            <span className="text-slate-400">Password strength:</span>
-                            <span className="font-medium text-slate-300">{changeStrength.label}</span>
+                            <span className="text-slate-300">Password strength:</span>
+                            <span className="font-semibold text-slate-200">{changeStrength.label}</span>
                           </div>
-                          <div className="w-full bg-[#0b0f19] h-1 rounded-full overflow-hidden border border-slate-800">
+                          <div className="w-full bg-[#0e1726] h-1.5 rounded-full overflow-hidden border border-slate-700">
                             <div
                               className={`h-full transition-all duration-300 ${changeStrength.color}`}
                               style={{ width: changeStrength.width }}
@@ -530,7 +544,7 @@ export default function App() {
                         }
                         required
                         minLength={8}
-                        className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+                        className="w-full px-3 py-2 bg-[#131d31] border border-slate-600/80 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
 
@@ -538,7 +552,7 @@ export default function App() {
                       <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-2 px-4 bg-slate-800 hover:bg-slate-700 font-medium text-xs text-slate-200 rounded-lg border border-slate-700 transition-colors"
+                        className="w-full py-2 px-4 bg-[#0e1726] hover:bg-slate-800 font-medium text-xs text-slate-200 rounded-lg border border-slate-600 transition-colors"
                       >
                         Update Password
                       </button>
@@ -555,45 +569,45 @@ export default function App() {
                 {/* SYSTEM STATS */}
                 {adminStats && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-[#151c2c] border border-slate-800 p-4 rounded-xl">
-                      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Users</p>
+                    <div className="bg-[#1b263b] border border-slate-700/80 p-4 rounded-xl shadow-sm">
+                      <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Total Users</p>
                       <p className="text-xl font-bold text-slate-100 mt-1">{adminStats.totalUsers}</p>
                     </div>
-                    <div className="bg-[#151c2c] border border-slate-800 p-4 rounded-xl">
-                      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Active Users</p>
+                    <div className="bg-[#1b263b] border border-slate-700/80 p-4 rounded-xl shadow-sm">
+                      <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Active Users</p>
                       <p className="text-xl font-bold text-emerald-400 mt-1">{adminStats.activeUsers}</p>
                     </div>
-                    <div className="bg-[#151c2c] border border-slate-800 p-4 rounded-xl">
-                      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Deactivated</p>
+                    <div className="bg-[#1b263b] border border-slate-700/80 p-4 rounded-xl shadow-sm">
+                      <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Deactivated</p>
                       <p className="text-xl font-bold text-rose-400 mt-1">{adminStats.deactivatedUsers}</p>
                     </div>
-                    <div className="bg-[#151c2c] border border-slate-800 p-4 rounded-xl">
-                      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Admins</p>
+                    <div className="bg-[#1b263b] border border-slate-700/80 p-4 rounded-xl shadow-sm">
+                      <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Admins</p>
                       <p className="text-xl font-bold text-indigo-400 mt-1">{adminStats.adminCount}</p>
                     </div>
                   </div>
                 )}
 
                 {/* USER MANAGEMENT TABLE */}
-                <div className="bg-[#151c2c] border border-slate-800 rounded-xl p-5 space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-800 pb-3">
+                <div className="bg-[#1b263b] border border-slate-700/80 rounded-xl p-5 space-y-4 shadow-md">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-700/80 pb-3">
                     <div>
                       <h2 className="text-sm font-semibold text-slate-100">User Management</h2>
-                      <p className="text-xs text-slate-400">View and manage user access permissions.</p>
+                      <p className="text-xs text-slate-300">View and manage user access permissions.</p>
                     </div>
                     <input
                       type="text"
                       placeholder="Search users..."
                       value={adminSearch}
                       onChange={(e) => setAdminSearch(e.target.value)}
-                      className="px-3 py-1.5 bg-[#0b0f19] border border-slate-700 rounded-lg text-xs text-slate-100 focus:outline-none focus:border-indigo-500 max-w-xs"
+                      className="px-3 py-1.5 bg-[#131d31] border border-slate-600/80 rounded-lg text-xs text-slate-100 focus:outline-none focus:border-indigo-500 max-w-xs"
                     />
                   </div>
 
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse min-w-[550px]">
                       <thead>
-                        <tr className="border-b border-slate-800 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+                        <tr className="border-b border-slate-700 text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
                           <th className="pb-2 px-2">User Details</th>
                           <th className="pb-2 px-2">Role</th>
                           <th className="pb-2 px-2">Status</th>
@@ -601,7 +615,7 @@ export default function App() {
                           <th className="pb-2 px-2 text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800/60 text-xs">
+                      <tbody className="divide-y divide-slate-700/60 text-xs">
                         {usersList
                           .filter(
                             (u) =>
@@ -609,17 +623,17 @@ export default function App() {
                               u.email.toLowerCase().includes(adminSearch.toLowerCase())
                           )
                           .map((u) => (
-                            <tr key={u._id} className="hover:bg-slate-800/30">
+                            <tr key={u._id} className="hover:bg-[#233047]">
                               <td className="py-2.5 px-2">
-                                <p className="font-medium text-slate-200">{u.name}</p>
-                                <p className="text-[11px] text-slate-400">{u.email}</p>
+                                <p className="font-semibold text-slate-100">{u.name}</p>
+                                <p className="text-[11px] text-slate-300">{u.email}</p>
                               </td>
                               <td className="py-2.5 px-2">
                                 <span
                                   className={`text-[10px] px-2 py-0.5 rounded border uppercase font-medium ${
                                     u.role === "admin"
-                                      ? "bg-indigo-950 text-indigo-300 border-indigo-800/60"
-                                      : "bg-slate-800 text-slate-300 border-slate-700"
+                                      ? "bg-indigo-950 text-indigo-300 border-indigo-700/80"
+                                      : "bg-[#0e1726] text-slate-300 border-slate-600"
                                   }`}
                                 >
                                   {u.role}
@@ -629,14 +643,14 @@ export default function App() {
                                 <span
                                   className={`text-[10px] px-2 py-0.5 rounded border uppercase font-medium ${
                                     u.status === "active"
-                                      ? "bg-emerald-950/60 text-emerald-300 border-emerald-800/60"
-                                      : "bg-rose-950/60 text-rose-300 border-rose-800/60"
+                                      ? "bg-emerald-950/80 text-emerald-300 border-emerald-700/80"
+                                      : "bg-rose-950/80 text-rose-300 border-rose-700/80"
                                   }`}
                                 >
                                   {u.status}
                                 </span>
                               </td>
-                              <td className="py-2.5 px-2 text-slate-400 text-[11px]">
+                              <td className="py-2.5 px-2 text-slate-300 text-[11px]">
                                 {new Date(u.createdAt).toLocaleDateString()}
                               </td>
                               <td className="py-2.5 px-2 text-right space-x-2">
@@ -644,13 +658,13 @@ export default function App() {
                                   <>
                                     <button
                                       onClick={() => handleToggleUserStatus(u._id, u.status)}
-                                      className="px-2.5 py-1 text-[11px] font-medium rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
+                                      className="px-2.5 py-1 text-[11px] font-medium rounded bg-[#0e1726] hover:bg-slate-800 text-slate-200 border border-slate-600 transition-colors"
                                     >
                                       {u.status === "active" ? "Deactivate" : "Activate"}
                                     </button>
                                     <button
                                       onClick={() => handleDeleteUser(u._id)}
-                                      className="px-2.5 py-1 text-[11px] font-medium rounded bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/50 transition-colors"
+                                      className="px-2.5 py-1 text-[11px] font-medium rounded bg-rose-950/60 hover:bg-rose-900 text-rose-200 border border-rose-700/70 transition-colors"
                                     >
                                       Delete
                                     </button>
@@ -668,24 +682,24 @@ export default function App() {
           </div>
         ) : (
           /* AUTHENTICATION CONTAINER (LOGIN / REGISTER / FORGOT / RESET) */
-          <div className="max-w-sm mx-auto bg-[#151c2c] border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+          <div className="max-w-sm mx-auto bg-[#1b263b] border border-slate-700/80 rounded-xl overflow-hidden shadow-lg">
             
             {/* HEADER */}
-            <div className="p-5 text-center border-b border-slate-800">
+            <div className="p-5 text-center border-b border-slate-700/80">
               <h1 className="text-lg font-semibold text-slate-100">Auth System</h1>
-              <p className="text-xs text-slate-400 mt-0.5">Secure JWT Authentication & Authorization</p>
+              <p className="text-xs text-slate-300 mt-0.5">Secure JWT Authentication & Authorization</p>
             </div>
 
             {/* TAB SELECTOR */}
             {authMode !== "forgot" && authMode !== "reset" && (
-              <div className="grid grid-cols-2 bg-[#0b0f19] p-1 border-b border-slate-800 text-xs font-medium">
+              <div className="grid grid-cols-2 bg-[#0e1726] p-1 border-b border-slate-700/80 text-xs font-medium">
                 <button
                   type="button"
                   onClick={() => setAuthMode("login")}
                   className={`py-2 text-center rounded transition-colors ${
                     authMode === "login"
-                      ? "bg-[#151c2c] text-white font-semibold"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-[#1b263b] text-white font-semibold"
+                      : "text-slate-300 hover:text-white"
                   }`}
                 >
                   Sign In
@@ -695,8 +709,8 @@ export default function App() {
                   onClick={() => setAuthMode("register")}
                   className={`py-2 text-center rounded transition-colors ${
                     authMode === "register"
-                      ? "bg-[#151c2c] text-white font-semibold"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-[#1b263b] text-white font-semibold"
+                      : "text-slate-300 hover:text-white"
                   }`}
                 >
                   Register
@@ -721,7 +735,7 @@ export default function App() {
                         onChange={handleFormChange}
                         placeholder="John Doe"
                         required
-                        className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                        className="w-full px-3 py-2 bg-[#131d31] border border-slate-600/80 rounded-lg text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
                   )}
@@ -737,7 +751,7 @@ export default function App() {
                       onChange={handleFormChange}
                       placeholder="you@example.com"
                       required
-                      className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                      className="w-full px-3 py-2 bg-[#131d31] border border-slate-600/80 rounded-lg text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500"
                     />
                   </div>
 
@@ -765,24 +779,24 @@ export default function App() {
                         placeholder="••••••••"
                         required
                         minLength={authMode === "register" ? 8 : 6}
-                        className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 pr-9"
+                        className="w-full px-3 py-2 bg-[#131d31] border border-slate-600/80 rounded-lg text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500 pr-9"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-200"
+                        className="absolute right-2.5 top-2.5"
                       >
-                        {showPassword ? "Hide" : "Show"}
+                        {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                       </button>
                     </div>
 
                     {authMode === "register" && formData.password && (
                       <div className="mt-1.5 space-y-1">
                         <div className="flex justify-between text-[11px]">
-                          <span className="text-slate-400">Strength:</span>
-                          <span className="font-medium text-slate-300">{regStrength.label}</span>
+                          <span className="text-slate-300">Strength:</span>
+                          <span className="font-semibold text-slate-200">{regStrength.label}</span>
                         </div>
-                        <div className="w-full bg-[#0b0f19] h-1 rounded-full overflow-hidden border border-slate-800">
+                        <div className="w-full bg-[#0e1726] h-1.5 rounded-full overflow-hidden border border-slate-700">
                           <div
                             className={`h-full transition-all duration-300 ${regStrength.color}`}
                             style={{ width: regStrength.width }}
@@ -807,20 +821,20 @@ export default function App() {
                             placeholder="••••••••"
                             required
                             minLength={8}
-                            className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 pr-9"
+                            className="w-full px-3 py-2 bg-[#131d31] border border-slate-600/80 rounded-lg text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500 pr-9"
                           />
                           <button
                             type="button"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            className="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-200"
+                            className="absolute right-2.5 top-2.5"
                           >
-                            {showConfirmPassword ? "Hide" : "Show"}
+                            {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
                           </button>
                         </div>
                       </div>
 
-                      <div className="p-2.5 bg-[#0b0f19] rounded-lg border border-slate-800 text-[11px] text-slate-400 space-y-0.5">
-                        <p className="font-medium text-slate-300">Password rules:</p>
+                      <div className="p-2.5 bg-[#0e1726] rounded-lg border border-slate-700 text-[11px] text-slate-300 space-y-0.5">
+                        <p className="font-semibold text-slate-200">Password requirements:</p>
                         <p>• Min 8 chars with uppercase, lowercase, number & symbol</p>
                       </div>
                     </>
@@ -829,7 +843,7 @@ export default function App() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 font-medium text-xs text-white rounded-lg transition-colors border border-indigo-500/30 flex items-center justify-center mt-2"
+                    className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 font-medium text-xs text-white rounded-lg transition-colors border border-indigo-500/40 flex items-center justify-center mt-2 shadow-sm"
                   >
                     {loading ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -844,7 +858,7 @@ export default function App() {
               {authMode === "forgot" && (
                 <form onSubmit={handleForgotPassword} className="space-y-3.5">
                   <h2 className="text-sm font-semibold text-slate-100 text-center">Reset Password</h2>
-                  <p className="text-xs text-slate-400 text-center">
+                  <p className="text-xs text-slate-300 text-center">
                     Enter your email address to receive reset instructions.
                   </p>
                   <div>
@@ -857,20 +871,20 @@ export default function App() {
                       onChange={(e) => setForgotEmail(e.target.value)}
                       placeholder="you@example.com"
                       required
-                      className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                      className="w-full px-3 py-2 bg-[#131d31] border border-slate-600/80 rounded-lg text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 font-medium text-xs text-white rounded-lg transition-colors border border-indigo-500/30"
+                    className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 font-medium text-xs text-white rounded-lg transition-colors border border-indigo-500/40 shadow-sm"
                   >
                     Send Reset Link
                   </button>
                   <button
                     type="button"
                     onClick={() => setAuthMode("login")}
-                    className="w-full py-1 text-xs text-slate-400 hover:text-slate-200 text-center block"
+                    className="w-full py-1 text-xs text-slate-300 hover:text-white text-center block"
                   >
                     Back to Sign In
                   </button>
@@ -891,7 +905,7 @@ export default function App() {
                       onChange={(e) => setResetData({ ...resetData, token: e.target.value })}
                       placeholder="Enter token"
                       required
-                      className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+                      className="w-full px-3 py-2 bg-[#131d31] border border-slate-600/80 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                   <div>
@@ -905,13 +919,13 @@ export default function App() {
                       placeholder="••••••••"
                       required
                       minLength={8}
-                      className="w-full px-3 py-2 bg-[#0b0f19] border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+                      className="w-full px-3 py-2 bg-[#131d31] border border-slate-600/80 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 font-medium text-xs text-white rounded-lg transition-colors border border-indigo-500/30"
+                    className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 font-medium text-xs text-white rounded-lg transition-colors border border-indigo-500/40 shadow-sm"
                   >
                     Update Password
                   </button>
