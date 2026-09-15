@@ -54,7 +54,12 @@ app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 
-// Health Check
+// Root Welcome Endpoint
+app.get("/", (req, res) => {
+  res.json({ message: "Full-Stack Authentication & RBAC API is running successfully", status: "Live" });
+});
+
+// API Health Check
 app.get("/api/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date() });
 });
