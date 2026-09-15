@@ -5,6 +5,12 @@ export default function App() {
   const [authMode, setAuthMode] = useState("login"); // "login", "register", "forgot", "reset"
   const [activeTab, setActiveTab] = useState("profile"); // "profile", "admin"
 
+  // Show/Hide Password Toggle States
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
   // Form States
   const [formData, setFormData] = useState({
     name: "",
@@ -25,12 +31,26 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [message, setMessage] = useState(null);
+
+  // Floating Toast State
+  const [toast, setToast] = useState(null);
 
   // Admin Dashboard States
   const [adminStats, setAdminStats] = useState(null);
   const [usersList, setUsersList] = useState([]);
   const [adminSearch, setAdminSearch] = useState("");
+
+  const showToast = (type, text) => {
+    setToast({ type, text, id: Date.now() });
+  };
+
+  // Auto dismiss toast after 4 seconds
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   // Check auth session on mount
   useEffect(() => {
@@ -73,19 +93,29 @@ export default function App() {
       setUsersList(usersRes.data.users);
     } catch (err) {
       console.error("Fetch Admin Data Error:", err);
-      setMessage({
-        type: "error",
-        text: err.response?.data?.message || "Failed to load admin data",
-      });
+      showToast("error", err.response?.data?.message || "Failed to load admin data");
     }
   };
 
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (message) setMessage(null);
   };
 
-  // Password complexity validator check
+  // Password strength calculator
+  const getPasswordStrength = (pwd) => {
+    if (!pwd) return { score: 0, label: "", color: "bg-slate-700", percent: 0 };
+    let score = 0;
+    if (pwd.length >= 8) score += 1;
+    if (/[a-z]/.test(pwd)) score += 1;
+    if (/[A-Z]/.test(pwd)) score += 1;
+    if (/\d/.test(pwd)) score += 1;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) score += 1;
+
+    if (score <= 2) return { score, label: "Weak", color: "bg-rose-500", percent: 33 };
+    if (score <= 4) return { score, label: "Medium", color: "bg-amber-500", percent: 66 };
+    return { score, label: "Strong", color: "bg-emerald-500", percent: 100 };
+  };
+
   const isPasswordStrong = (pwd) => {
     return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(pwd);
   };
@@ -93,18 +123,17 @@ export default function App() {
   // Auth Submit Handlers
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
-    setMessage(null);
 
     if (authMode === "register") {
       if (formData.password !== formData.confirmPassword) {
-        setMessage({ type: "error", text: "Passwords do not match." });
+        showToast("error", "Passwords do not match.");
         return;
       }
       if (!isPasswordStrong(formData.password)) {
-        setMessage({
-          type: "error",
-          text: "Password must be at least 8 characters long and contain uppercase, lowercase, a number, and a special character.",
-        });
+        showToast(
+          "error",
+          "Password must be at least 8 characters long and contain uppercase, lowercase, a number, and a special character."
+        );
         return;
       }
     }
@@ -123,7 +152,7 @@ export default function App() {
 
         setUser(res.data.user);
         setProfileData({ name: res.data.user.name, email: res.data.user.email });
-        setMessage({ type: "success", text: "Successfully logged in!" });
+        showToast("success", "Successfully logged in!");
       } else if (authMode === "register") {
         const res = await api.post("/api/auth/register", {
           name: formData.name,
@@ -136,10 +165,7 @@ export default function App() {
 
         setUser(res.data.user);
         setProfileData({ name: res.data.user.name, email: res.data.user.email });
-        setMessage({
-          type: "success",
-          text: res.data.message || "Account created successfully!",
-        });
+        showToast("success", res.data.message || "Account created successfully!");
       }
     } catch (error) {
       console.error("Auth Error:", error);
@@ -149,7 +175,7 @@ export default function App() {
           ? "Cannot connect to backend server. Make sure node server.js is running."
           : error.message) ||
         "Authentication failed";
-      setMessage({ type: "error", text: errorMsg });
+      showToast("error", errorMsg);
     } finally {
       setLoading(false);
     }
@@ -159,20 +185,16 @@ export default function App() {
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(null);
 
     try {
       const res = await api.post("/api/auth/forgot-password", { email: forgotEmail });
-      setMessage({ type: "success", text: res.data.message });
+      showToast("success", res.data.message);
       if (res.data.demoResetToken) {
         setResetData({ ...resetData, token: res.data.demoResetToken });
         setAuthMode("reset");
       }
     } catch (error) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Request failed",
-      });
+      showToast("error", error.response?.data?.message || "Request failed");
     } finally {
       setLoading(false);
     }
@@ -182,26 +204,22 @@ export default function App() {
   const handleResetPassword = async (e) => {
     e.preventDefault();
     if (!isPasswordStrong(resetData.password)) {
-      setMessage({
-        type: "error",
-        text: "Password must be at least 8 characters long and contain uppercase, lowercase, a number, and a special character.",
-      });
+      showToast(
+        "error",
+        "Password must be at least 8 characters long and contain uppercase, lowercase, a number, and a special character."
+      );
       return;
     }
 
     setLoading(true);
-    setMessage(null);
 
     try {
       const res = await api.post("/api/auth/reset-password", resetData);
-      setMessage({ type: "success", text: res.data.message });
+      showToast("success", res.data.message);
       setAuthMode("login");
       setResetData({ token: "", password: "" });
     } catch (error) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Password reset failed",
-      });
+      showToast("error", error.response?.data?.message || "Password reset failed");
     } finally {
       setLoading(false);
     }
@@ -211,17 +229,13 @@ export default function App() {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(null);
 
     try {
       const res = await api.put("/api/users/me", profileData);
       setUser(res.data.user);
-      setMessage({ type: "success", text: "Profile updated successfully!" });
+      showToast("success", "Profile updated successfully!");
     } catch (error) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Profile update failed",
-      });
+      showToast("error", error.response?.data?.message || "Profile update failed");
     } finally {
       setLoading(false);
     }
@@ -231,32 +245,28 @@ export default function App() {
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setMessage({ type: "error", text: "New passwords do not match." });
+      showToast("error", "New passwords do not match.");
       return;
     }
     if (!isPasswordStrong(passwordData.newPassword)) {
-      setMessage({
-        type: "error",
-        text: "New password must be at least 8 characters long and contain uppercase, lowercase, a number, and a special character.",
-      });
+      showToast(
+        "error",
+        "New password must be at least 8 characters long and contain uppercase, lowercase, a number, and a special character."
+      );
       return;
     }
 
     setLoading(true);
-    setMessage(null);
 
     try {
       const res = await api.put("/api/users/me/password", {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
       });
-      setMessage({ type: "success", text: res.data.message });
+      showToast("success", res.data.message);
       setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (error) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Password update failed",
-      });
+      showToast("error", error.response?.data?.message || "Password update failed");
     } finally {
       setLoading(false);
     }
@@ -267,13 +277,10 @@ export default function App() {
     const newStatus = currentStatus === "active" ? "deactivated" : "active";
     try {
       await api.patch(`/api/admin/users/${userId}/status`, { status: newStatus });
-      setMessage({ type: "success", text: `User status changed to ${newStatus}` });
+      showToast("success", `User status changed to ${newStatus}`);
       fetchAdminData();
     } catch (error) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Status update failed",
-      });
+      showToast("error", error.response?.data?.message || "Status update failed");
     }
   };
 
@@ -281,13 +288,10 @@ export default function App() {
     if (!window.confirm("Are you sure you want to delete this user account?")) return;
     try {
       await api.delete(`/api/admin/users/${userId}`);
-      setMessage({ type: "success", text: "User deleted successfully" });
+      showToast("success", "User deleted successfully");
       fetchAdminData();
     } catch (error) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Failed to delete user",
-      });
+      showToast("error", error.response?.data?.message || "Failed to delete user");
     }
   };
 
@@ -304,7 +308,7 @@ export default function App() {
       setUser(null);
       setActiveTab("profile");
       if (showMessage) {
-        setMessage({ type: "success", text: "Logged out successfully" });
+        showToast("success", "Logged out successfully");
       }
     }
   };
@@ -320,21 +324,47 @@ export default function App() {
     );
   }
 
+  const regStrength = getPasswordStrength(formData.password);
+  const changeStrength = getPasswordStrength(passwordData.newPassword);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100 font-sans p-4 md:p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
-        {/* NOTIFICATION MESSAGES */}
-        {message && (
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100 font-sans p-4 md:p-8 relative">
+      
+      {/* FLOATING TOAST NOTIFICATION */}
+      {toast && (
+        <div className="fixed top-5 right-5 z-50 max-w-md w-full animate-in fade-in slide-in-from-top-5 duration-300">
           <div
-            className={`p-4 rounded-xl font-medium text-sm text-center border transition-all ${
-              message.type === "success"
-                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                : "bg-rose-500/10 text-rose-400 border-rose-500/30"
+            className={`p-4 rounded-2xl shadow-2xl border flex items-center justify-between backdrop-blur-xl ${
+              toast.type === "success"
+                ? "bg-emerald-950/90 border-emerald-500/40 text-emerald-200"
+                : "bg-rose-950/90 border-rose-500/40 text-rose-200"
             }`}
           >
-            {message.text}
+            <div className="flex items-center space-x-3">
+              {toast.type === "success" ? (
+                <svg className="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )}
+              <span className="text-sm font-medium">{toast.text}</span>
+            </div>
+            <button
+              onClick={() => setToast(null)}
+              className="ml-4 text-slate-400 hover:text-white transition"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-        )}
+        </div>
+      )}
+
+      <div className="max-w-5xl mx-auto space-y-6">
 
         {/* LOGGED IN USER INTERFACE */}
         {user ? (
@@ -454,39 +484,75 @@ export default function App() {
                       <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">
                         Current Password
                       </label>
-                      <input
-                        type="password"
-                        placeholder="••••••••"
-                        value={passwordData.currentPassword}
-                        onChange={(e) =>
-                          setPasswordData({
-                            ...passwordData,
-                            currentPassword: e.target.value,
-                          })
-                        }
-                        required
-                        className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      />
+                      <div className="relative">
+                        <input
+                          type={showCurrentPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          value={passwordData.currentPassword}
+                          onChange={(e) =>
+                            setPasswordData({
+                              ...passwordData,
+                              currentPassword: e.target.value,
+                            })
+                          }
+                          required
+                          className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="absolute right-3 top-3 text-slate-400 hover:text-white"
+                        >
+                          {showCurrentPassword ? "🙈" : "👁️"}
+                        </button>
+                      </div>
                     </div>
 
                     <div>
                       <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">
                         New Password
                       </label>
-                      <input
-                        type="password"
-                        placeholder="••••••••"
-                        value={passwordData.newPassword}
-                        onChange={(e) =>
-                          setPasswordData({
-                            ...passwordData,
-                            newPassword: e.target.value,
-                          })
-                        }
-                        required
-                        minLength={8}
-                        className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      />
+                      <div className="relative">
+                        <input
+                          type={showNewPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          value={passwordData.newPassword}
+                          onChange={(e) =>
+                            setPasswordData({
+                              ...passwordData,
+                              newPassword: e.target.value,
+                            })
+                          }
+                          required
+                          minLength={8}
+                          className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-3 text-slate-400 hover:text-white"
+                        >
+                          {showNewPassword ? "🙈" : "👁️"}
+                        </button>
+                      </div>
+
+                      {/* LIVE STRENGTH METER */}
+                      {passwordData.newPassword && (
+                        <div className="mt-2 space-y-1">
+                          <div className="flex justify-between text-xs font-medium">
+                            <span className="text-slate-400">Strength:</span>
+                            <span className={`font-semibold ${changeStrength.color.replace('bg-', 'text-')}`}>
+                              {changeStrength.label}
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800">
+                            <div
+                              className={`h-full transition-all duration-300 ${changeStrength.color}`}
+                              style={{ width: `${changeStrength.percent}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div>
@@ -507,16 +573,6 @@ export default function App() {
                         minLength={8}
                         className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
-                    </div>
-
-                    {/* PASSWORD REQUIREMENTS GUIDE */}
-                    <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 text-[11px] text-slate-400 space-y-1">
-                      <p className="font-semibold text-slate-300">Password Requirements:</p>
-                      <ul className="list-disc list-inside space-y-0.5">
-                        <li>At least 8 characters long</li>
-                        <li>Must contain an uppercase & lowercase letter</li>
-                        <li>Must contain a number & special character</li>
-                      </ul>
                     </div>
 
                     <button
@@ -737,16 +793,43 @@ export default function App() {
                         </button>
                       )}
                     </div>
-                    <input
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleFormChange}
-                      placeholder="••••••••"
-                      required
-                      minLength={authMode === "register" ? 8 : 6}
-                      className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        value={formData.password}
+                        onChange={handleFormChange}
+                        placeholder="••••••••"
+                        required
+                        minLength={authMode === "register" ? 8 : 6}
+                        className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-slate-400 hover:text-white"
+                      >
+                        {showPassword ? "🙈" : "👁️"}
+                      </button>
+                    </div>
+
+                    {/* LIVE PASSWORD STRENGTH METER (REGISTER MODE) */}
+                    {authMode === "register" && formData.password && (
+                      <div className="mt-2 space-y-1">
+                        <div className="flex justify-between text-xs font-medium">
+                          <span className="text-slate-400">Strength:</span>
+                          <span className={`font-semibold ${regStrength.color.replace('bg-', 'text-')}`}>
+                            {regStrength.label}
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800">
+                          <div
+                            className={`h-full transition-all duration-300 ${regStrength.color}`}
+                            style={{ width: `${regStrength.percent}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {authMode === "register" && (
@@ -755,16 +838,25 @@ export default function App() {
                         <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">
                           Confirm Password
                         </label>
-                        <input
-                          type="password"
-                          name="confirmPassword"
-                          value={formData.confirmPassword}
-                          onChange={handleFormChange}
-                          placeholder="••••••••"
-                          required
-                          minLength={8}
-                          className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
+                        <div className="relative">
+                          <input
+                            type={showConfirmPassword ? "text" : "password"}
+                            name="confirmPassword"
+                            value={formData.confirmPassword}
+                            onChange={handleFormChange}
+                            placeholder="••••••••"
+                            required
+                            minLength={8}
+                            className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-3 text-slate-400 hover:text-white"
+                          >
+                            {showConfirmPassword ? "🙈" : "👁️"}
+                          </button>
+                        </div>
                       </div>
 
                       {/* PASSWORD REQUIREMENTS GUIDE */}
